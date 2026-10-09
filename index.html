@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Experiencia AR - Mi Cuadro</title>
+    <!-- Librería A-Frame -->
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <!-- Librería MindAR para A-Frame -->
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+      /* Botón flotante para iniciar el video con audio (requerimiento de navegadores móviles) */
+      #play-button {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 999;
+        padding: 12px 24px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 25px;
+        font-size: 16px;
+        font-family: sans-serif;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <button id="play-button">Toca para reproducir audio/video</button>
+
+    <a-scene 
+      mindar-image="imageTargetSrc: ./targets.mind;" 
+      color-space="sRGB" 
+      renderer="colorManagement: true, physicallyCorrectLights" 
+      vr-mode-ui="enabled: false" 
+      device-orientation-permission-ui="enabled: false">
+
+      <a-assets>
+        <!-- Tu video subido a GitHub -->
+        <video id="miVideo" src="./video.mp4" preload="auto" loop webkit-playsinline playsinline crossorigin="anonymous"></video>
+      </a-assets>
+
+      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+      <!-- Objetivo 0: Se activa cuando la cámara detecta tu cuadro -->
+      <a-entity id="target" mindar-image-target="targetIndex: 0">
+        <!-- El plano del video. Puedes ajustar width y height según las proporciones de tu cuadro -->
+        <a-video src="#miVideo" width="1" height="0.6" position="0 0 0"></a-video>
+      </a-entity>
+    </a-scene>
+
+    <script>
+      const video = document.querySelector('#miVideo');
+      const target = document.querySelector('#target');
+      const playButton = document.querySelector('#play-button');
+
+      // Detectar cuando el cuadro entra en la vista de la cámara
+      target.addEventListener("targetFound", () => {
+        video.play().catch(() => {
+          // Si el navegador bloquea la reproducción automática con audio, muestra el botón
+          playButton.style.display = "block";
+        });
+      });
+
+      // Detectar cuando el cuadro sale de la vista de la cámara
+      target.addEventListener("targetLost", () => {
+        video.pause();
+      });
+
+      // Acción al tocar el botón de auxilio para reproducir
+      playButton.addEventListener('click', () => {
+        video.play();
+        playButton.style.display = "none";
+      });
+    </script>
+  </body>
+</html>
